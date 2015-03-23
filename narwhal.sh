@@ -25,6 +25,7 @@ pid="$(docker inspect --format='{{ .State.Pid }}' "$id")"
 
 # Create temporary name for network namespace
 ln -f -s "/proc/$pid/ns/net" "/var/run/netns/$ns"
+trap 'rm -f "/var/run/netns/$ns"' EXIT
 
 # Create veth pair
 ip link add "$ext" type veth peer name "$int"
@@ -52,6 +53,3 @@ ip netns exec "$ns" ip -6 route add default via "$gwv6"
 
 # Assign host IPv6 address
 ip -6 addr add "$gwv6" peer "$ipv6/128" dev "$ext"
-
-# Remove temporary network namespace
-rm -f "/var/run/netns/$ns"
