@@ -30,26 +30,22 @@ trap 'rm -f "/var/run/netns/$ns"' EXIT
 # Create veth pair
 ip link add "$ext" type veth peer name "$int"
 
-# Move container device to container namespace
+# Move interface to container namespace
 ip link set "$int" netns "$ns"
 
-# Rename device inside container namespace
-ip netns exec "$ns" ip link set "$int" name eth0
-
-# Set interfaces up
+# Setup host interface
 ip link set "$ext" up
-ip netns exec "$ns" ip link set eth0 up
-
-# Assign container IPv4 address
-ip netns exec "$ns" ip -4 address add "$ipv4" peer "$gwv4/32" dev eth0
-ip netns exec "$ns" ip -4 route add default via "$gwv4"
-
-# Assign host IPv4 address
 ip -4 address add "$gwv4" peer "$ipv4/32" dev "$ext"
+ip -6 address add "$gwv6" peer "$ipv6/128" dev "$ext"
 
-# Assign container IPv6 addresses
-ip netns exec "$ns" ip -6 address add "$ipv6" peer "$gwv6/128" dev eth0
-ip netns exec "$ns" ip -6 route add default via "$gwv6"
+# Setup container interface
+ip netns exec "$ns" bash -e <<EOF
+ip link set '$int' name eth0
+ip link set eth0 up
 
-# Assign host IPv6 address
-ip -6 addr add "$gwv6" peer "$ipv6/128" dev "$ext"
+ip -4 address add '$ipv4' peer '$gwv4/32' dev eth0
+ip -4 route add default via "$gwv4"
+
+ip -6 address add '$ipv6' peer '$gwv6/128' dev eth0
+ip -6 route add default via '$gwv6'
+EOF
