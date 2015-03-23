@@ -28,6 +28,7 @@ ns="$int"
 pid="$(docker inspect --format='{{ .State.Pid }}' "$id")"
 
 # Create temporary name for network namespace
+mkdir -p /var/run/netns
 ln -f -s "/proc/$pid/ns/net" "/var/run/netns/$ns"
 trap 'rm -f "/var/run/netns/$ns"' EXIT
 
