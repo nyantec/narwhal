@@ -2,6 +2,10 @@
 
 set -e -o pipefail
 
+lladdr() {
+	ip link show "$1" | grep -E -o 'link/ether [[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}' | cut -d ' ' -f 2
+}
+
 # Docker container ID
 id="$(docker inspect --format '{{ .Id }}' "$1" | cut -c 1-12)"
 
@@ -30,13 +34,21 @@ trap 'rm -f "/var/run/netns/$ns"' EXIT
 # Create veth pair
 ip link add "$ext" type veth peer name "$int"
 
+# Save link-layer addresses
+llext="$(lladdr "$ext")"
+llint="$(lladdr "$int")"
+
 # Move interface to container namespace
 ip link set "$int" netns "$ns"
 
 # Setup host interface
 ip link set "$ext" up
+
 ip -4 address add "$gwv4" peer "$ipv4/32" dev "$ext"
+ip -4 neighbour replace "$ipv4" lladdr "$llint" nud permanent dev "$ext"
+
 ip -6 address add "$gwv6" peer "$ipv6/128" dev "$ext"
+ip -6 neighbour replace "$ipv6" lladdr "$llint" nud permanent dev "$ext"
 
 # Setup container interface
 ip netns exec "$ns" bash -e <<EOF
@@ -44,8 +56,10 @@ ip link set '$int' name eth0
 ip link set eth0 up
 
 ip -4 address add '$ipv4' peer '$gwv4/32' dev eth0
+ip -4 neighbour replace '$ipv4' lladdr '$llext' nud permanent dev eth0
 ip -4 route add default via "$gwv4"
 
 ip -6 address add '$ipv6' peer '$gwv6/128' dev eth0
+ip -6 neighbour replace '$ipv6' lladdr '$llext' nud permanent dev eth0
 ip -6 route add default via '$gwv6'
 EOF
