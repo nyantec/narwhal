@@ -70,9 +70,9 @@ ip -4 neighbour replace '$gwv6' lladdr '$llext' nud permanent dev eth0
 ip -4 route add '$gwv4/32' dev eth0
 ip -4 route add default via "$gwv4"
 
-ip -6 address add '$ipv6' dev eth0
+ip -6 address add '$ipv6/128' dev eth0
 ip -6 neighbour replace '$gwv6' lladdr '$llext' nud permanent dev eth0
-ip -6 route add '$gwv6/32' dev eth0
+ip -6 route add '$gwv6/128' dev eth0
 ip -6 route add default via '$gwv6'
 EOF
 
