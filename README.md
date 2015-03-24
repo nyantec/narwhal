@@ -21,7 +21,7 @@ containers' or even the host systems' networking stack.
 In addition to that the Docker daemon creates a virtual bridge device on
 startup which is (more or less) a layer 2 (ethernet) switch. It adds the host
 side of your containers' virtual ethernet pair to that bridge. This allows
-all containers to talk to each other via layer 2 protocols (i.e. arp). Read 
+all containers to talk to each other via ethernet. Read 
 [here](https://nyantec.com/en/2015/03/20/docker-networking-considered-harmful)
 why this is extremely dangerous. It completely undermines the carefully crafted
 container isolation based on networking namespaces.
@@ -34,6 +34,9 @@ It is common knownledge to most operators how to work with
 [iptables](http://www.netfilter.org/projects/iptables/) and 
 [ip6tables](http://ipset.netfilter.org/ip6tables.man.html), but how many have
 ever heard of [ebtables](http://ebtables.netfilter.org/)? ;-)
+
+__tl;dr:_Docker's default networking mode is vulnerable to ARP spoofing attacks.
+A single malicious container corrupts all running containers.__
 
 ## How do I use it?
 
