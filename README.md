@@ -1,4 +1,4 @@
-narwhal – Secure docker networking
+narwhal – secure Docker networking
 ==================================
 
 ## What does `narwhal` do?
