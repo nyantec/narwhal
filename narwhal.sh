@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-set -e -o pipefail
+set -e
 
 # Docker container ID
 id="$(docker inspect --format '{{ printf "%.12s" .Id }}' "$1")"
@@ -50,7 +50,7 @@ ip -6 address add "$gwv6" peer "$ipv6/128" dev "$ext"
 ip -6 neighbour replace "$ipv6" lladdr "$llint" nud permanent dev "$ext"
 
 # Setup container interface
-ip netns exec "$ns" bash -e <<EOF
+ip netns exec "$ns" sh -e <<EOF
 ip link set '$int' name eth0
 ip link set eth0 up
 
