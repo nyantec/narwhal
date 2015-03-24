@@ -34,8 +34,8 @@ trap 'rm -f "/var/run/netns/$ns"' EXIT
 ip link add "$ext" type veth peer name "$int"
 
 # Save link-layer addresses
-llext="$(</sys/class/net/"$ext"/address)"
-llint="$(</sys/class/net/"$int"/address)"
+llext="$(<"/sys/class/net/$ext/address")"
+llint="$(<"/sys/class/net/$int/address")"
 
 # Move interface to container namespace
 ip link set "$int" netns "$ns"
