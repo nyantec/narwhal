@@ -2,11 +2,6 @@
 
 set -e -o pipefail
 
-lladdr() {
-	# Scrape link-level address
-	ip link show "$1" | grep -E -o 'link/ether [0-9a-f]{2}([0-9a-f]{2}){5}' | cut -d ' ' -f 2
-}
-
 # Docker container ID
 id="$(docker inspect --format '{{ printf "%.12s" .Id }}' "$1")"
 
@@ -39,8 +34,8 @@ trap 'rm -f "/var/run/netns/$ns"' EXIT
 ip link add "$ext" type veth peer name "$int"
 
 # Save link-layer addresses
-llext="$(lladdr "$ext")"
-llint="$(lladdr "$int")"
+llext="$(</sys/class/net/"$ext"/address)"
+llint="$(</sys/class/net/"$int"/address)"
 
 # Move interface to container namespace
 ip link set "$int" netns "$ns"
