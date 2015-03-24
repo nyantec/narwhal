@@ -22,10 +22,10 @@ communication has to go through this virtual interface and no container
 is capable of interfering with other containers’ or even the host’s
 network stack.
 
-Unfortunately, the Docker daemon creates an Ethernet bridge on startup,
-which behaves (more or less) like a hardware Ethernet switch. Docker then
-connects the host side of the virtual interfaces to it, allowing all
-containers to talk to each other directly via Ethernet (layer 2). Read
+Unfortunately, Docker connects these virtual interfaces to an Ethernet
+bridge which behaves (more or less) like a hardware Ethernet switch,
+allowing all containers to talk to each other directly via Ethernet
+(layer 2). Read
 [this article](https://nyantec.com/en/2015/03/20/docker-networking-considered-harmful/)
 to understand why this is a bad idea. It completely undermines the
 carefully crafted network isolation.
