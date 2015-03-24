@@ -5,7 +5,7 @@ set -e
 msg() {
 	local format="$1"
 	shift 1
-	printf "%s: $format\n\n" "$0" "$@"
+	printf "%s: $format\n" "$0" "$@"
 }
 
 die() {
