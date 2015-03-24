@@ -65,12 +65,14 @@ ip netns exec "$ns" sh -e <<EOF
 ip link set '$int' name eth0
 ip link set eth0 up
 
-ip -4 address add '$ipv4' peer '$gwv4/32' dev eth0
-ip -4 neighbour replace '$ipv4' lladdr '$llext' nud permanent dev eth0
+ip -4 address add '$ipv4/32' dev eth0
+ip -4 neighbour replace '$gwv6' lladdr '$llext' nud permanent dev eth0
+ip -4 route add '$gwv4/32' dev eth0
 ip -4 route add default via "$gwv4"
 
-ip -6 address add '$ipv6' peer '$gwv6/128' dev eth0
-ip -6 neighbour replace '$ipv6' lladdr '$llext' nud permanent dev eth0
+ip -6 address add '$ipv6' dev eth0
+ip -6 neighbour replace '$gwv6' lladdr '$llext' nud permanent dev eth0
+ip -6 route add '$gwv6/32' dev eth0
 ip -6 route add default via '$gwv6'
 EOF
 
