@@ -37,9 +37,33 @@ ever heard of [ebtables](http://ebtables.netfilter.org/)? ;-)
 
 ## How do I use it?
 
-```bash
-narwhal container ipv4container ipv4host ipv6container ipv6host
 ```
+narwhal container [--ipv4 addr] [--ipv4-host addr] [--ipv6 addr] [--ipv6-host addr] [--interface name] [--host-interface name]
+```
+
+container 
+:    The ID or name of a running Docker container. See `docker ps`.
+
+--ipv4 addr
+:    The IPv4 address assigned to the container.
+
+--ipv4-host addr
+:    The IPv4 address that the host will be known as to the container. It'll
+also be configured as the containers default gateway.
+
+--ipv6 addr
+:    The IPv6 address assigned to the container.
+
+--ipv6-host addr
+:    The IPv6 address that the host will be known as to the container. It'll
+also be configured as the containers' default gateway.
+
+--interface name
+:    The name of the created interface inside the container. Defaults to `eth0`.
+
+--host-interface name
+:    The name of the created interface on the host. Defaults to `nw-$CONTAINERID`.
+
 
 ### Example
 
@@ -147,20 +171,6 @@ PING heise.de(redirector.heise.de) 56 data bytes
 rtt min/avg/max/mdev = 5.472/5.472/5.472/0.000 m
 ```
 
-
-#### container 
-
-The ID or name of a running Docker container. See `docker ps`.
-
-#### ipv(4|6)container
-
-The IPv(4|6) address assigned to the `eth0` device in the container.
-
-#### ipv(4|6)host
-
-The IPv(4|6) address that the host will be known as to the container. It'll
-also be configured as the containers default gateway.
-
 ## FAQ
 
 ### How do I undo what `narwhal` did?
@@ -184,7 +194,7 @@ No, but here are your options:
     containers with the host or with each other.
     Additionally, configure source- and/or destination NAT manually.
 
-### What happens if `narwhal` is (incidentially) applied more than once?
+### What happens if `narwhal` is (accidentially) applied more than once?
 
 Nothing. It will find that an `eth0` device already exists and just fail
 after rolling back alrady acquired resources.
