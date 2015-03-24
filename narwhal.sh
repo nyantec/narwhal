@@ -162,7 +162,7 @@ ip link set "$host_interface" up
 if [ -n "$ipv4" ]
 then
 	# Setup address, neighbour table and host route
-	ip -4 address add "$host_ipv4" dev "$host_interface"
+	ip -4 address add "$host_ipv4" scope link dev "$host_interface"
 	ip -4 neighbour replace "$ipv4" lladdr "$temp_ll" nud permanent dev "$host_interface"
 	ip -4 route add "$ipv4/32" dev "$host_interface"
 fi
@@ -173,7 +173,7 @@ then
 	sysctl -w "net.ipv6.conf.${host_interface}.autoconf=0"
 
 	# Setup address, neighbour table and host route
-	ip -6 address add "$host_ipv6" dev "$host_interface"
+	ip -6 address add "$host_ipv6" scope link dev "$host_interface"
 	ip -6 neighbour replace "$ipv6" lladdr "$temp_ll" nud permanent dev "$host_interface"
 	ip -6 route add "$ipv6/128" dev "$host_interface"
 else
