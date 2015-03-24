@@ -226,8 +226,8 @@ then
 	fi
 
 	if [ -n "$ipv6" ]
-		sysctl -w "net.ipv6.conf.${host_interface}.forwarding=1"
 	then
+		sysctl -w "net.ipv6.conf.${host_interface}.forwarding=1"
 	fi
 fi
 
