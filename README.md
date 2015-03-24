@@ -4,16 +4,15 @@ narwhal – secure Docker networking
 ## Abstract
 
 `narwhal` is used in conjunction with the `--net=none` networking mode of
-Docker to establish a secure network configuration. It does so by creating
-a pair of virtual Ethernet interfaces with static addresses for each
-container and setting up the necessary network routes.
+Docker to establish a secure network configuration with full layer‐2
+isolation.
 
 ## Background
 
 Docker currently offers 4 different networking modes: `bridge`, `host`, 
 `container` and `none`.
 
-Most users probably use the default `bridge` mode as it is the only one
+Most users rely on the default `bridge` mode, as it is the only one
 providing Internet connectivity with network isolation out of the box.
 In this mode, Docker creates seperate network namespaces for every
 container as well as a connected pair of virtual Ethernet interfaces
