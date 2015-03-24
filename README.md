@@ -3,10 +3,9 @@ narwhal - A docker network configuration tool
 
 ## What does `narwhal` do?
 
-`narwhal` sets up a networking namespace (an exclusive instance of the whole
-Linux networking stack with own arp, routing and netfilter etc), creates a
+`narwhal` is used with the `--net=none` option and creates a
 virtual ethernet device pair (with one end in the container and the other end
-on the host system) and assigns static IPv4 and IPv6 addresses with the
+on the host system). It assigns static IPv4 and IPv6 addresses with the
 minimum neccessary routing setup.
 
 ## What is this good for?
@@ -41,6 +40,113 @@ ever heard of [ebtables](http://ebtables.netfilter.org/)? ;-)
 ```bash
 narwhal container ipv4container ipv4host ipv6container ipv6host
 ```
+
+### Example
+
+You need to configure your container with `--net=none`:
+
+```bash
+root@host:/# docker run --rm -t -i --net=none ubuntu /bin/bash
+root@bb9b0be2a4d3:/# ip address
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+```
+
+Now that your container is running configure networking. We assume we own the public subnets
+`5.9.235.144/28` and `2a01:4f8:161:310e:4::/80`:
+
+```bash
+root@host:/# ip address
+...
+2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 7c:05:07:0e:01:ea brd ff:ff:ff:ff:ff:ff
+    inet 5.9.42.20/27 brd 5.9.42.31 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 2a01:4f8:161:310e::1/80 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::7e05:7ff:fe0e:1ea/64 scope link 
+       valid_lft forever preferred_lft forever
+
+root@host:/# narwhal bb9b0be2a4d3 --ipv4 5.9.235.146 --ipv4-host 5.9.42.20 --ipv6 2a01:4f8:161:310e:4::1 --ipv6-host 2a01:4f8:161:310e::1
+
+root@host:/# ip address
+...
+74: nw-bb9b0be2a4d3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether ca:46:43:64:d0:ef brd ff:ff:ff:ff:ff:ff
+    inet 5.9.42.20 peer 5.9.235.147/32 scope global nw-bb9b0be2a4d3
+       valid_lft forever preferred_lft forever
+    inet6 2a01:4f8:161:310e::1 peer 2a01:4f8:161:310e:4::1/128 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::c846:43ff:fe64:d0ef/64 scope link 
+       valid_lft forever preferred_lft forever
+
+root@host:/# ip route
+default via 5.9.42.1 dev eth0 
+5.9.235.147 dev nw-bb9b0be2a4d3  proto kernel  scope link  src 5.9.42.20 
+
+root@host:/# ip -6 route
+2a01:4f8:161:310e::1 dev nw-bb9b0be2a4d3  proto kernel  metric 256 
+2a01:4f8:161:310e::/80 dev eth0  proto kernel  metric 256 
+2a01:4f8:161:310e:4::1 dev nw-bb9b0be2a4d3  proto kernel  metric 256 
+fe80::/64 dev eth0  proto kernel  metric 256 
+fe80::/64 dev nw-bb9b0be2a4d3  proto kernel  metric 256 
+default via fe80::1 dev eth0  metric 1024 
+```
+
+`narwhal` created the virtual ethernet pair which is named `nw-bb9b0be2a4d3` on the host side.
+
+This is how it now looks from inside the container:
+
+```bash
+root@bb9b0be2a4d3:/# ip address
+1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
+       valid_lft forever preferred_lft forever
+    inet6 ::1/128 scope host 
+       valid_lft forever preferred_lft forever
+73: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 96:f2:bd:b4:64:ee brd ff:ff:ff:ff:ff:ff
+    inet 5.9.235.147/32 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 2a01:4f8:161:310e:4::1 peer 2a01:4f8:161:310e::1/128 scope global 
+       valid_lft forever preferred_lft forever
+    inet6 fe80::94f2:bdff:feb4:64ee/64 scope link 
+       valid_lft forever preferred_lft forever
+root@bb9b0be2a4d3:/# ip route
+default via 5.9.42.20 dev eth0 
+5.9.42.20 dev eth0  scope link 
+root@bb9b0be2a4d3:/# ip -6 route
+2a01:4f8:161:310e::1 dev eth0  metric 1024 
+2a01:4f8:161:310e:4::1 dev eth0  proto kernel  metric 256 
+fe80::/64 dev eth0  proto kernel  metric 256 
+default via 2a01:4f8:161:310e::1 dev eth0  metric 1024 
+```
+
+If `sysctl net/ipv4/conf/all/forwarding` and `sysctl net/ipv6/conf/all/forwarding` 
+are enabled and your packet filter is not interfering your should now be able to reach the outside world:
+
+```bash
+root@bb9b0be2a4d3:/# ping 8.8.8.8
+PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
+64 bytes from 8.8.8.8: icmp_seq=1 ttl=53 time=9.16 ms
+^C
+--- 8.8.8.8 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 9.169/9.169/9.169/0.000 ms
+root@bb9b0be2a4d3:/# ping6 heise.de 
+PING heise.de(redirector.heise.de) 56 data bytes
+64 bytes from redirector.heise.de: icmp_seq=1 ttl=55 time=5.47 ms
+^C
+--- heise.de ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 5.472/5.472/5.472/0.000 m
+```
+
 
 #### container 
 
