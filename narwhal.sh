@@ -26,7 +26,7 @@ Usage: $0 [OPTION]… [CONTAINER]
       --host-ipv4 IPV6          host IPv4 address [169.254.0.1]
       --host-ipv6 IPV6          host IPv6 address [fe80::1]
 
-      --interface IFACE         container interface name [eth0]
+  -i, --interface IFACE         container interface name [eth0]
       --host-interface IFACE    host interface name [nw-CONTAINER]
       --mtu SIZE                maximum transmission unit
 
