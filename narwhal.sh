@@ -28,6 +28,7 @@ Usage: $0 [OPTION]… [CONTAINER]
 
       --interface IFACE         container interface name [eth0]
       --host-interface IFACE    host interface name [nw-CONTAINER]
+      --mtu SIZE                maximum transmission unit
 
       --temp-interface IFACE    temporary container interface name [nwt-PID]
       --temp-namespace NS       temporary network namespace name [nwt-PID]
@@ -92,6 +93,11 @@ do
 		temp_namespace="$2"
 		shift;;
 
+	(--mtu)
+		optreq $# "$1"
+		mtu="$2"
+		shift;;
+
 	(--forwarding)
 		forwarding=1;;
 
@@ -153,7 +159,7 @@ clean_netns() {
 trap 'clean_netns' EXIT
 
 # Create veth pair
-ip link add "$host_interface" type veth peer name "$temp_interface"
+ip link add "$host_interface" ${mtu:+mtu "$mtu"} type veth peer name "$temp_interface" ${mtu:+mtu "$mtu"}
 
 # Remove veth pair on failure
 clean_veth() {
