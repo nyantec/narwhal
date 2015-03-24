@@ -75,10 +75,10 @@ do
 		shift;;
 
 	(--forwarding)
-		forwarding=1
+		forwarding=1;;
 
 	(--trace)
-		trace=1
+		trace=1;;
 
 	(--)
 		shift
