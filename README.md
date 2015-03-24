@@ -1,5 +1,5 @@
-narwhal - A docker network configuration tool
-=============================================
+narwhal – Secure docker networking
+==================================
 
 ## What does `narwhal` do?
 
