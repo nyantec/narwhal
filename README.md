@@ -78,11 +78,10 @@ root@bb9b0be2a4d3:/# ip address
        valid_lft forever preferred_lft forever
 ```
 
-Now that your container is running configure networking. We assume we own the public subnets
-`5.9.235.144/28` and `2a01:4f8:161:310e:4::/80`:
+Now that your container is running, configure networking.
 
 ```bash
-root@host:/# narwhal --ipv4 5.9.235.147 --ipv6 2a01:4f8:161:310e:4::1 bb9b0be2a4d3
+root@host:/# narwhal --ipv4 128.66.23.42 --ipv6 2001:db8:cabb:a6e5::1 bb9b0be2a4d3
 ```
 
 
@@ -93,24 +92,26 @@ root@host:/# ip address
 ...
 74: nw-bb9b0be2a4d3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
 link/ether 6a:55:5e:99:b8:1f brd ff:ff:ff:ff:ff:ff
-    inet 169.254.0.1/32 scope link nw-caf242370b5c
+    inet 169.254.0.1 peer 128.66.0.1/32 scope link nw-caf242370b5c
        valid_lft forever preferred_lft forever
     inet6 fe80::6855:5eff:fe99:b81f/64 scope link 
        valid_lft forever preferred_lft forever
-    inet6 fe80::1/128 scope link 
+    inet6 fe80::1 peer 2001:db8::1/128 scope link 
        valid_lft forever preferred_lft forever
 
-root@host:/# ip route
-default via 5.9.42.1 dev eth0 
-5.9.235.147 dev nw-bb9b0be2a4d3  proto kernel  scope link  src 5.9.42.20 
+root@host:/# ip -4 route
+default via 128.66.0.1 dev eth0
+128.66.0.1/24 dev eth0  proto kernel  scope link  src 128.66.0.2
+128.66.23.42 dev nw-bb9b0be2a4d3  proto kernel  scope link  src 169.254.0.1
 
 root@host:/# ip -6 route
-2a01:4f8:161:310e::1 dev nw-bb9b0be2a4d3  proto kernel  metric 256 
-2a01:4f8:161:310e::/80 dev eth0  proto kernel  metric 256 
-2a01:4f8:161:310e:4::1 dev nw-bb9b0be2a4d3  proto kernel  metric 256 
+2001:db8:cabb:a6e5::1 dev nw-8a418da09ebf  proto kernel  metric 256 
+2001:db8:cabb:a6e5::1 dev nw-8a418da09ebf  metric 1024 
+2001:db8:dead:beef::/64 dev eth0  proto kernel  metric 256 
+fe80::1 dev nw-bb9b0be2a4d3  proto kernel  metric 256 
 fe80::/64 dev eth0  proto kernel  metric 256 
-fe80::/64 dev nw-bb9b0be2a4d3  proto kernel  metric 256 
-default via fe80::1 dev eth0  metric 1024 
+fe80::/64 dev nw-8a418da09ebf  proto kernel  metric 256 
+default via 2001:db8:dead:beef::1 dev eth0  metric 1024 
 ```
 
 This is how it looks like from within the container: 
@@ -125,22 +126,23 @@ root@bb9b0be2a4d3:/# ip address
        valid_lft forever preferred_lft forever
 157: eth0: <BROADCAST,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
     link/ether 4e:45:86:31:c4:15 brd ff:ff:ff:ff:ff:ff
-    inet 5.9.235.147/32 scope global eth0
+    inet 128.66.23.64 peer 169.254.0.1/32 scope global eth0 
        valid_lft forever preferred_lft forever
-    inet6 2a01:4f8:161:310e:4::1/128 scope global 
+    inet6 2001:db8:cabb:a6e5::1 peer fe80::1/128 scope global 
        valid_lft forever preferred_lft forever
     inet6 fe80::4c45:86ff:fe31:c415/64 scope link 
        valid_lft forever preferred_lft forever
 
-root@bb9b0be2a4d3:/# ip route
+root@bb9b0be2a4d3:/# ip -4 route
 default via 169.254.0.1 dev eth0 
-169.254.0.1 dev eth0  scope link 
+169.254.0.1 dev eth0  proto kernel  scope link  src 128.66.23.42
 
 root@bb9b0be2a4d3:/# ip -6 route
-2a01:4f8:161:310e:4::1 dev eth0  proto kernel  metric 256 
+2001:db8:cabb:a6e5::1 dev eth0  proto kernel  metric 256 
+fe80::1 dev eth0  proto kernel  metric 256 
 fe80::1 dev eth0  metric 1024 
 fe80::/64 dev eth0  proto kernel  metric 256 
-default via fe80::1 dev eth0  metric 1024
+default via fe80::1 dev eth0  metric 1024 
 ```
 
 If `sysctl net/ipv4/conf/all/forwarding` and `sysctl net/ipv6/conf/all/forwarding` 
