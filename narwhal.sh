@@ -45,8 +45,8 @@ clean_veth() {
 trap 'clean_veth; clean_netns' EXIT
 
 # Save link-layer addresses
-llext="$(<"/sys/class/net/$ext/address")"
-llint="$(<"/sys/class/net/$int/address")"
+llext="$(cat "/sys/class/net/$ext/address")"
+llint="$(cat "/sys/class/net/$int/address")"
 
 # Move interface to container namespace
 ip link set "$int" netns "$ns"
