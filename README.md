@@ -65,7 +65,8 @@ Usage: narwhal [OPTION]… [CONTAINER]
 
 ### Example
 
-You need to configure your container with `--net=none`:
+In this example, we shall create a container with `--net=none`. At first,
+it will only have a loopback interface:
 
 ```bash
 root@host:/# docker run --rm -t -i --net=none ubuntu /bin/bash
@@ -78,19 +79,21 @@ root@bb9b0be2a4d3:/# ip address
        valid_lft forever preferred_lft forever
 ```
 
-Now that your container is running, configure networking.
+Now that our container is running, we shall run `narwhal` to create a
+network configuration, using `128.66.23.42` and `2001:db8:cabb:a6e5::1` as
+addresses for our container.
 
 ```bash
 root@host:/# narwhal --ipv4 128.66.23.42 --ipv6 2001:db8:cabb:a6e5::1 bb9b0be2a4d3
 ```
 
 
-You should now be able to see the new device. This is what it looks like on the host:
+We should now be able to see the new network interface on the host:
 
 ```
 root@host:/# ip address
-...
-74: nw-bb9b0be2a4d3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+…
+74: nw-bb9b0be2a4d3: <BROADCAST,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
 link/ether 6a:55:5e:99:b8:1f brd ff:ff:ff:ff:ff:ff
     inet 169.254.0.1 peer 128.66.23.42/32 scope link nw-caf242370b5c
        valid_lft forever preferred_lft forever
@@ -114,7 +117,7 @@ fe80::/64 dev nw-8a418da09ebf  proto kernel  metric 256
 default via 2001:db8:dead:beef::1 dev eth0  metric 1024 
 ```
 
-This is how it looks like from within the container: 
+This is how it looks like from within the container:
 
 ```bash
 root@bb9b0be2a4d3:/# ip address
@@ -145,21 +148,32 @@ fe80::/64 dev eth0  proto kernel  metric 256
 default via fe80::1 dev eth0  metric 1024 
 ```
 
-If `sysctl net/ipv4/conf/all/forwarding` and `sysctl net/ipv6/conf/all/forwarding` 
-are enabled and your packet filter is not interfering your should now be able to reach the outside world:
+To allow our container to communicate with the outside world, we have to
+enable packet forwarding:
 
 ```bash
-root@bb9b0be2a4d3:/# ping 8.8.8.8
+root@host:/# sysctl -w net.ipv4.conf.all.forwarding=1
+net.ipv4.conf.all.forwarding = 1
+
+root@host:/# sysctl -w net.ipv6.conf.all.forwarding=1
+net.ipv6.conf.all.forwarding = 1
+```
+
+We should now be able to reach other Internet hosts:
+
+```bash
+root@bb9b0be2a4d3:/# ping -c 1 8.8.8.8
 PING 8.8.8.8 (8.8.8.8) 56(84) bytes of data.
 64 bytes from 8.8.8.8: icmp_seq=1 ttl=53 time=9.16 ms
-^C
+
 --- 8.8.8.8 ping statistics ---
 1 packets transmitted, 1 received, 0% packet loss, time 0ms
 rtt min/avg/max/mdev = 9.169/9.169/9.169/0.000 ms
-root@bb9b0be2a4d3:/# ping6 heise.de 
+
+root@bb9b0be2a4d3:/# ping6 -c 1 heise.de 
 PING heise.de(redirector.heise.de) 56 data bytes
 64 bytes from redirector.heise.de: icmp_seq=1 ttl=55 time=5.47 ms
-^C
+
 --- heise.de ping statistics ---
 1 packets transmitted, 1 received, 0% packet loss, time 0ms
 rtt min/avg/max/mdev = 5.472/5.472/5.472/0.000 m
@@ -167,7 +181,7 @@ rtt min/avg/max/mdev = 5.472/5.472/5.472/0.000 m
 
 ## FAQ
 
-### How do I undo what `narwhal` did?
+### How do I undo everything `narwhal` did?
 
 Stop the container or run
 
