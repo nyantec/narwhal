@@ -154,24 +154,32 @@ then
 fi
 
 # Setup container interface
-ip netns exec "$temp_namespace" sh -e <<EOF
-ip link set '$temp_interface' name '$interface'
-ip link set '$interface' up
+ip netns exec "$temp_namespace" env \
+	interface="$interface" \
+	temp_interface="$temp_interface" \
+	ipv4="$ipv4" \
+	ipv6="$ipv6" \
+	host_ipv4="$host_ipv4" \
+	host_ipv6="$host_ipv6" \
+	host_ll="$host_ll" \
+	sh -e <<EOF
+ip link set "\$temp_interface" name "\$interface"
+ip link set "\$interface" up
 
-if [ -n '$ipv4' ]
+if [ -n "\$ipv4" ]
 then
-	ip -4 address add '$ipv4/32' dev '$interface'
-	ip -4 neighbour replace '$host_ipv4' lladdr '$host_ll' nud permanent dev '$interface'
-	ip -4 route add '$host_ipv4/32' dev '$interface'
-	ip -4 route add default via '$host_ipv4' dev '$interface'
+	ip -4 address add "\$ipv4/32" dev "\$interface"
+	ip -4 neighbour replace "\$host_ipv4" lladdr "\$host_ll" nud permanent dev "\$interface"
+	ip -4 route add "\$host_ipv4/32" dev "\$interface"
+	ip -4 route add default via "\$host_ipv4" dev "\$interface"
 fi
 
-if [ -n '$ipv6' ]
+if [ -n "\$ipv6" ]
 then
-	ip -6 address add '$ipv6/128' dev '$interface'
-	ip -6 neighbour replace '$host_ipv6' lladdr '$host_ll' nud permanent dev '$interface'
-	ip -6 route add '$host_ipv6/128' dev '$interface'
-	ip -6 route add default via '$host_ipv6' dev '$interface'
+	ip -6 address add "\$ipv6/128" dev "\$interface"
+	ip -6 neighbour replace "\$host_ipv6" lladdr "\$host_ll" nud permanent dev "\$interface"
+	ip -6 route add "\$host_ipv6/128" dev "\$interface"
+	ip -6 route add default via "\$host_ipv6" dev "\$interface"
 fi
 EOF
 
