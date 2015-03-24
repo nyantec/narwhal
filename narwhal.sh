@@ -8,7 +8,7 @@ lladdr() {
 }
 
 # Docker container ID
-id="$(docker inspect --format '{{ .Id }}' "$1" | cut -c 1-12)"
+id="$(docker inspect --format '{{ printf "%.12s" .Id }}' "$1")"
 
 # Interface names
 ext="nw-$id"
