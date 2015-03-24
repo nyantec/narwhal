@@ -3,7 +3,7 @@
 set -e -o pipefail
 
 lladdr() {
-	ip link show "$1" | grep -E -o 'link/ether [[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}' | cut -d ' ' -f 2
+	ip link show "$1" | grep -E -o 'link/ether [0-9a-f]{2}([0-9a-f]{2}){5}' | cut -d ' ' -f 2
 }
 
 # Docker container ID
