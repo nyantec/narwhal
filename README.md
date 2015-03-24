@@ -3,7 +3,7 @@ narwhal - A docker network configuration tool
 
 ## What does `narwhal` do?
 
-`narwhal` is used with the `--net=none` option and creates a
+`narwhal` is used with the `--net=none` option to `docker run` and creates a
 virtual ethernet device pair (with one end in the container and the other end
 on the host system). It assigns static IPv4 and IPv6 addresses with the
 minimum neccessary routing setup.
@@ -22,7 +22,7 @@ In addition to that the Docker daemon creates a virtual bridge device on
 startup which is (more or less) a layer 2 (ethernet) switch. It adds the host
 side of your containers' virtual ethernet pair to that bridge. This allows
 all containers to talk to each other via ethernet. Read 
-[here](https://nyantec.com/en/2015/03/20/docker-networking-considered-harmful)
+[here](https://nyantec.com/en/2015/03/20/docker-networking-considered-harmful/)
 why this is extremely dangerous. It completely undermines the carefully crafted
 container isolation based on networking namespaces.
 
@@ -52,14 +52,14 @@ __--ipv4 addr__
 
 __--ipv4-host addr__
 :    The IPv4 address that the host will be known as to the container. It'll
-also be configured as the containers default gateway.
+also be configured as the containers default gateway. Defaults to `169.254.0.1`
 
 __--ipv6 addr__
 :    The IPv6 address assigned to the container.
 
 __--ipv6-host addr__
 :    The IPv6 address that the host will be known as to the container. It'll
-also be configured as the containers' default gateway.
+also be configured as the containers' default gateway. Defaults to `fe80::1`
 
 __--interface name__
 :    The name of the created interface inside the container. Defaults to `eth0`.
