@@ -77,6 +77,9 @@ do
 	(--forwarding)
 		forwarding=1
 
+	(--trace)
+		trace=1
+
 	(--)
 		shift
 		break;;
@@ -94,6 +97,12 @@ done
 if [ $# -lt 1 ]
 then
 	die 1 "Docker container ID required."
+fi
+
+# Enable tracing
+if [ -n "$trace" ]
+then
+	set -x
 fi
 
 # Docker container ID
@@ -162,7 +171,7 @@ ip netns exec "$temp_namespace" env \
 	host_ipv4="$host_ipv4" \
 	host_ipv6="$host_ipv6" \
 	host_ll="$host_ll" \
-	sh -e <<EOF
+	sh -e ${trace:+-x} <<EOF
 ip link set "\$temp_interface" name "\$interface"
 ip link set "\$interface" up
 
