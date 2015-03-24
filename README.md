@@ -163,6 +163,17 @@ also be configured as the containers default gateway.
 
 ## FAQ
 
+### How do I undo what `narwhal` did?
+
+Stop the container or run
+
+```bash
+ip link del nw-$CONTAINERID
+
+```
+
+All routes etc will vanish automatically.
+
 ### Does `narwhal` configure `iptables`?
 
 No, but here are your options:
