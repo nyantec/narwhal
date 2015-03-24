@@ -42,10 +42,11 @@ ever heard of [ebtables](http://ebtables.netfilter.org/)? ;-)
 narwhal container ipv4address ipv4gateway ipv6address ipv6gateway
 ```
 
+## FAQ
+
 ### What happens on container termination?
 
 The containers' networking namespace and the virtual ethernet pair are destroyed
 automatically.
-
 
 
