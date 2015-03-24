@@ -3,6 +3,7 @@
 set -e -o pipefail
 
 lladdr() {
+	# Scrape link-level address
 	ip link show "$1" | grep -E -o 'link/ether [0-9a-f]{2}([0-9a-f]{2}){5}' | cut -d ' ' -f 2
 }
 
@@ -30,6 +31,8 @@ pid="$(docker inspect --format='{{ .State.Pid }}' "$id")"
 # Create temporary name for network namespace
 mkdir -p /var/run/netns
 ln -f -s "/proc/$pid/ns/net" "/var/run/netns/$ns"
+
+# Remove temporary name on exit
 trap 'rm -f "/var/run/netns/$ns"' EXIT
 
 # Create veth pair
