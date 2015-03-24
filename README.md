@@ -39,14 +39,53 @@ ever heard of [ebtables](http://ebtables.netfilter.org/)? ;-)
 ## How do I use it?
 
 ```bash
-narwhal container ipv4address ipv4gateway ipv6address ipv6gateway
+narwhal container ipv4container ipv4host ipv6container ipv6host
 ```
 
+#### container 
+
+The ID or name of a running docker container. See `docker ps`.
+
+#### ipv(4|6)container
+
+The IPv(4|6) address assigned to the `eth0` device in the container.
+
+#### ipv(4|6)host
+
+The IPv(4|6) address that the host will be known as to the container. It'll
+also be configured as the containers default gateway.
+
 ## FAQ
+
+### 
+
+### What happens when `narwhal` is (incidentially) applied more than once?
+
+Nothing. It will find that an `eth0` device already exists and just fail
+after rolling back alrady acquired resources.
+
+### Can narwhal be used in combination with the other networking modes?
+
+Absolutely! Your other containers may use other networking modes.
+Containers you want to configure with `narwahl` should use `--net=none`.
+Trying to apply `narwahl` to otherwise configured containers just fails
+if an `eth0` device already exists, but it won't cause any harm.
 
 ### What happens on container termination?
 
 The containers' networking namespace and the virtual ethernet pair are destroyed
 automatically.
 
+### What happens when I configure networking after my container started?
+
+If the container is started with `--net=none` it only has a
+[loop back device](https://en.wikipedia.org/wiki/Loop_device). When your
+container has services listening on ports it should __not__ bind to
+a specific address (except `127.0.0.1` or `::1`). 
+
+Not binding to an address is usually achieved by supplying `0.0.0.0`, `*`, `:::`
+as listen address. Consult your services' documentation for details.
+
+After `narwhal` was run and created the `eth0` device your service will
+automatically accept packets via the supplied addresses.
 
