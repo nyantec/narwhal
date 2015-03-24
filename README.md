@@ -44,7 +44,7 @@ narwhal container ipv4container ipv4host ipv6container ipv6host
 
 #### container 
 
-The ID or name of a running docker container. See `docker ps`.
+The ID or name of a running Docker container. See `docker ps`.
 
 #### ipv(4|6)container
 
@@ -57,14 +57,22 @@ also be configured as the containers default gateway.
 
 ## FAQ
 
-### 
+### Does `narwhal` configure `iptables`?
 
-### What happens when `narwhal` is (incidentially) applied more than once?
+No, but here are your options:
+
+  - Assign public IPv4 or IPv6 addresses, enable IP forwarding and be happy.
+    Perform filtering via the `FORWARDING` chain in the filter table as you like.
+  - Assign private IPv4 or IPv6 addresses and just use them to connect your
+    containers with the host or with each other.
+    Additionally, configure source- and/or destination NAT manually.
+
+### What happens if `narwhal` is (incidentially) applied more than once?
 
 Nothing. It will find that an `eth0` device already exists and just fail
 after rolling back alrady acquired resources.
 
-### Can narwhal be used in combination with the other networking modes?
+### Can `narwhal` be used in combination with the other networking modes?
 
 Absolutely! Your other containers may use other networking modes.
 Containers you want to configure with `narwahl` should use `--net=none`.
