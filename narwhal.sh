@@ -117,6 +117,8 @@ id="$(docker inspect --format '{{ printf "%.12s" .Id }}' "$1")"
 : ${host_interface:=nw-$id}
 : ${temp_interface:=nwt-$$}
 : ${temp_namespace:=nwt-$$}
+: ${ipv4_host:=169.254.0.1}
+: ${ipv6_host:=fe80::1}
 
 # Determine Docker container PID
 pid="$(docker inspect --format='{{ .State.Pid }}' "$id")"
