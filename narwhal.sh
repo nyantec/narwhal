@@ -33,6 +33,8 @@ Usage: $0 [OPTION]… [CONTAINER]
       --temp-interface IFACE    temporary container interface name [nwt-PID]
       --temp-namespace NS       temporary network namespace name [nwt-PID]
 
+      --paranoid                create restrictive Ethernet filter rules
+
       --trace                   trace actions
   -h, --help                    display this help and exit
 EOF
@@ -100,6 +102,9 @@ do
 
 	(--forwarding)
 		forwarding=1;;
+
+	(--paranoid)
+		paranoid=1;;
 
 	(--trace)
 		trace=1;;
@@ -176,18 +181,73 @@ temp_ll="$(cat "/sys/class/net/$temp_interface/address")"
 ip link set "$host_interface" arp off
 ip link set "$temp_interface" arp off
 
-
 # Enable reversed-path source validation
 sysctl -q -w "net.ipv4.conf.${host_interface}.rp_filter=1"
 
 # Move interface to container namespace
 ip link set "$temp_interface" netns "$temp_namespace"
 
+# Setup Ethernet filter rules
+if [ -n "$paranoid" ]
+then
+	eb_in="$host_interface-in"
+	eb_out="$host_interface-out"
+	eb_fw="$host_interface-fw"
+
+	# INPUT
+	if ebtables -L "$eb_in" >/dev/null 2>&1
+	then
+		ebtables -F "$eb_in"
+	else
+		ebtables -N "$eb_in" -P DROP
+		ebtables -A INPUT -i "$host_interface" -j "$eb_in"
+	fi
+
+	# OUTPUT
+	if ebtables -L "$eb_out" >/dev/null 2>&1
+	then
+		ebtables -F "$eb_out"
+	else
+		ebtables -N "$eb_out" -P DROP
+		ebtables -A OUTPUT -o "$host_interface" -j "$eb_out"
+	fi
+
+	# FORWARD
+	if ebtables -L "$eb_fw" >/dev/null 2>&1
+	then
+		ebtables -F "$eb_fw"
+	else
+		ebtables -N "$eb_fw" -P DROP
+		ebtables -A FORWARD -i "$host_interface" -j "$eb_fw"
+		ebtables -A FORWARD -o "$host_interface" -j "$eb_fw"
+	fi
+fi
+
 # Setup host interface
 ip link set "$host_interface" up
 
 if [ -n "$ipv4" ]
 then
+	# IPv4 Ethernet filter rules
+	if [ -n "$paranoid" ]
+	then
+		# Incoming IPv4
+		ebtables -A "$eb_in" \
+			--protocol ipv4 \
+			--source "$temp_ll" \
+			--destination "$host_ll" \
+			--ip-source "$ipv4" \
+			-j ACCEPT
+
+		# Outgoing IPv4
+		ebtables -A "$eb_out" \
+			--protocol ipv4 \
+			--source "$host_ll" \
+			--destination "$temp_ll" \
+			--ip-destination "$ipv4" \
+			-j ACCEPT
+	fi
+
 	# Setup address, neighbour table and host route
 	ip -4 address add "$host_ipv4" peer "$ipv4/32" scope link dev "$host_interface"
 	ip -4 neighbour replace "$ipv4" lladdr "$temp_ll" nud permanent dev "$host_interface"
@@ -200,6 +260,42 @@ then
 
 	# Ignore router advertisements
 	sysctl -q -w "net.ipv6.conf.${host_interface}.accept_ra=0"
+
+	# IPv6 Ethernet filter rules
+	if [ -n "$paranoid" ]
+	then
+		eb_ipv6="$host_interface-ipv6"
+
+		if ebtables -L "$eb_ipv6" >/dev/null 2>&1
+		then
+			ebtables -F "$eb_ipv6"
+		else
+			ebtables -N "$eb_ipv6" -P ACCEPT
+		fi
+
+		# Filter IPv6 ICMP
+		ebtables -A "$eb_ipv6" \
+			--protocol ipv6 \
+			--ip6-protocol ipv6-icmp \
+			--ip6-icmp-type \! 1:129/0:255 \
+			-j DROP
+
+		# Incoming IPv6
+		ebtables -A "$eb_in" \
+			--protocol ipv6 \
+			--source "$temp_ll" \
+			--destination "$host_ll" \
+			--ip6-source "$ipv6" \
+			-j "$eb_ipv6"
+
+		# Outgoing IPv6
+		ebtables -A "$eb_out" \
+			--protocol ipv6 \
+			--source "$host_ll" \
+			--destination "$temp_ll" \
+			--ip6-destination "$ipv6" \
+			-j "$eb_ipv6"
+	fi
 
 	# Setup address, neighbour table and host route
 	ip -6 address add "$host_ipv6" peer "$ipv6/128" scope link dev "$host_interface"
