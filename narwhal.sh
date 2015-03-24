@@ -27,11 +27,22 @@ pid="$(docker inspect --format='{{ .State.Pid }}' "$id")"
 mkdir -p /var/run/netns
 ln -f -s "/proc/$pid/ns/net" "/var/run/netns/$ns"
 
-# Remove temporary name on exit
-trap 'rm -f "/var/run/netns/$ns"' EXIT
+# Remove temporary namespace on exit
+clean_netns() {
+	rm -f "/var/run/netns/$ns"
+}
+
+trap 'clean_netns' EXIT
 
 # Create veth pair
 ip link add "$ext" type veth peer name "$int"
+
+# Remove veth pair on failure
+clean_veth() {
+	ip link del "$ext"
+}
+
+trap 'clean_veth; clean_netns' EXIT
 
 # Save link-layer addresses
 llext="$(<"/sys/class/net/$ext/address")"
@@ -62,3 +73,6 @@ ip -6 address add '$ipv6' peer '$gwv6/128' dev eth0
 ip -6 neighbour replace '$ipv6' lladdr '$llext' nud permanent dev eth0
 ip -6 route add default via '$gwv6'
 EOF
+
+# Reset trap
+trap 'clean_netns' EXIT
