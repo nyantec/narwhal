@@ -41,27 +41,27 @@ ever heard of [ebtables](http://ebtables.netfilter.org/)? ;-)
 narwhal container [--ipv4 addr] [--ipv4-host addr] [--ipv6 addr] [--ipv6-host addr] [--interface name] [--host-interface name]
 ```
 
-container 
+__container__ 
 :    The ID or name of a running Docker container. See `docker ps`.
 
---ipv4 addr
+__--ipv4 addr__
 :    The IPv4 address assigned to the container.
 
---ipv4-host addr
+__--ipv4-host addr__
 :    The IPv4 address that the host will be known as to the container. It'll
 also be configured as the containers default gateway.
 
---ipv6 addr
+__--ipv6 addr__
 :    The IPv6 address assigned to the container.
 
---ipv6-host addr
+__--ipv6-host addr__
 :    The IPv6 address that the host will be known as to the container. It'll
 also be configured as the containers' default gateway.
 
---interface name
+__--interface name__
 :    The name of the created interface inside the container. Defaults to `eth0`.
 
---host-interface name
+__--host-interface name__
 :    The name of the created interface on the host. Defaults to `nw-$CONTAINERID`.
 
 
