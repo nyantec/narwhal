@@ -16,7 +16,25 @@ die() {
 }
 
 usage() {
-	printf "Usage: %s [options] [container ID]\n" $0
+cat <<EOF
+Usage: $0 [OPTION]… [CONTAINER]
+
+  -4, --ipv4 IPV4               container IPv4 address
+  -6, --ipv6 IPV6               container IPv6 address
+      --forwarding              enable packet forwarding
+
+      --host-ipv4 IPV6          host IPv4 address [169.254.0.1]
+      --host-ipv6 IPV6          host IPv6 address [fe80::1]
+
+      --interface IFACE         container interface name [eth0]
+      --host-interface IFACE    host interface name [nw-CONTAINER]
+
+      --temp-interface IFACE    temporary container interface name [nwt-PID]
+      --temp-namespace NS       temporary network namespace name [nwt-PID]
+
+      --trace                   trace actions
+  -h, --help                    display this help and exit
+EOF
 }
 
 optreq() {
