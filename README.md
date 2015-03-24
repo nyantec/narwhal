@@ -181,26 +181,28 @@ rtt min/avg/max/mdev = 5.472/5.472/5.472/0.000 m
 
 ## FAQ
 
-### How do I undo everything `narwhal` did?
+### How can I remove a configuration?
 
-Stop the container or run
+Simply stop the container or remove the virtual Ethernet interface:
 
 ```bash
 ip link del nw-$CONTAINERID
 
 ```
 
-All routes etc will vanish automatically.
+All routes etc. will vanish with it.
 
-### Does `narwhal` configure `iptables`?
+### Does `narwhal` configure any firewall rules?
 
-No, but here are your options:
+No, by default `narwhal` does not touch any firewall rules. These are your
+options:
 
   - Assign public IPv4 or IPv6 addresses, enable IP forwarding and be happy.
-    Perform filtering via the `FORWARDING` chain in the filter table as you like.
-  - Assign private IPv4 or IPv6 addresses and just use them to connect your
-    containers with the host or with each other.
-    Additionally, configure source- and/or destination NAT manually.
+    Create filter rules in the `iptables` `FORWARD` chain as you like.
+  - Assign private IPv4 or unique local IPv6 addresses and just use them
+    to connect your containers with the host or with each other.
+    Additionally, you may configure source and/or destination NAT to
+    selectively allow communication with the outside world.
 
 ### What happens if `narwhal` is (accidentially) applied more than once?
 
