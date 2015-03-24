@@ -41,7 +41,7 @@ A single malicious container corrupts all running containers.__
 ## How do I use it?
 
 ```
-Usage: narwhal.sh [OPTION]… [CONTAINER]
+Usage: narwhal [OPTION]… [CONTAINER]
 
   -4, --ipv4 IPV4               container IPv4 address
   -6, --ipv6 IPV6               container IPv6 address
@@ -50,11 +50,14 @@ Usage: narwhal.sh [OPTION]… [CONTAINER]
       --host-ipv4 IPV6          host IPv4 address [169.254.0.1]
       --host-ipv6 IPV6          host IPv6 address [fe80::1]
 
-      --interface IFACE         container interface name [eth0]
+  -i, --interface IFACE         container interface name [eth0]
       --host-interface IFACE    host interface name [nw-CONTAINER]
+      --mtu SIZE                maximum transmission unit
 
       --temp-interface IFACE    temporary container interface name [nwt-PID]
       --temp-namespace NS       temporary network namespace name [nwt-PID]
+
+      --paranoid                create restrictive Ethernet filter rules
 
       --trace                   trace actions
   -h, --help                    display this help and exit
