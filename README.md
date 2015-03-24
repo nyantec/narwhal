@@ -79,7 +79,7 @@ Now that your container is running configure networking. We assume we own the pu
 `5.9.235.144/28` and `2a01:4f8:161:310e:4::/80`:
 
 ```bash
-root@host:/# ./narwhal.sh --ipv4 5.9.235.147 --ipv6 2a01:4f8:161:310e:4::1 bb9b0be2a4d3
+root@host:/# narwhal --ipv4 5.9.235.147 --ipv6 2a01:4f8:161:310e:4::1 bb9b0be2a4d3
 ```
 
 
