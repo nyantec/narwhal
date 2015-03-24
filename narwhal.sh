@@ -168,6 +168,7 @@ then
 fi
 
 if [ -n "$ipv6" ]
+then
 	# Disable IPv6 autoconfiguration
 	sysctl -w "net.ipv6.conf.${host_interface}.autoconf=0"
 
