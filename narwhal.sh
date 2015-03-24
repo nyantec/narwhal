@@ -171,7 +171,7 @@ ip link set "$host_interface" arp off
 ip link set "$temp_interface" arp off
 
 # Enable reversed-path source validation
-sysctl -w "net.ipv4.conf.${host_interface}.rp_filter=1"
+sysctl -q -w "net.ipv4.conf.${host_interface}.rp_filter=1"
 
 # Move interface to container namespace
 ip link set "$temp_interface" netns "$temp_namespace"
@@ -190,7 +190,7 @@ fi
 if [ -n "$ipv6" ]
 then
 	# Disable IPv6 autoconfiguration
-	sysctl -w "net.ipv6.conf.${host_interface}.autoconf=0"
+	sysctl -q -w "net.ipv6.conf.${host_interface}.autoconf=0"
 
 	# Setup address, neighbour table and host route
 	ip -6 address add "$host_ipv6" scope link dev "$host_interface"
@@ -198,7 +198,7 @@ then
 	ip -6 route add "$ipv6/128" dev "$host_interface"
 else
 	# Disable IPv6
-	sysctl -w "net.ipv6.conf.${host_interface}.disable_ipv6=1"
+	sysctl -q -w "net.ipv6.conf.${host_interface}.disable_ipv6=1"
 fi
 
 # Setup container interface
@@ -225,7 +225,7 @@ fi
 if [ -n "\$ipv6" ]
 then
 	# Disable IPv6 autoconfiguration
-	sysctl -w "net.ipv6.conf.\${interface}.autoconf=0"
+	sysctl -q -w "net.ipv6.conf.\${interface}.autoconf=0"
 
 	ip -6 address add "\$ipv6/128" dev "\$interface"
 	ip -6 neighbour replace "\$host_ipv6" lladdr "\$host_ll" nud permanent dev "\$interface"
@@ -233,7 +233,7 @@ then
 	ip -6 route add default via "\$host_ipv6" dev "\$interface"
 else
 	# Disable IPv6
-	sysctl -w "net.ipv6.conf.\${interface}.disable_ipv6=1"
+	sysctl -q -w "net.ipv6.conf.\${interface}.disable_ipv6=1"
 fi
 EOF
 
@@ -242,12 +242,12 @@ if [ -n "$forwarding" ]
 then
 	if [ -n "$ipv4" ]
 	then
-		sysctl -w "net.ipv4.conf.${host_interface}.forwarding=1"
+		sysctl -q -w "net.ipv4.conf.${host_interface}.forwarding=1"
 	fi
 
 	if [ -n "$ipv6" ]
 	then
-		sysctl -w "net.ipv6.conf.${host_interface}.forwarding=1"
+		sysctl -q -w "net.ipv6.conf.${host_interface}.forwarding=1"
 	fi
 fi
 
