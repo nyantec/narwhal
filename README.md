@@ -92,11 +92,11 @@ root@host:/# ip address
 ...
 74: nw-bb9b0be2a4d3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
 link/ether 6a:55:5e:99:b8:1f brd ff:ff:ff:ff:ff:ff
-    inet 169.254.0.1 peer 128.66.0.1/32 scope link nw-caf242370b5c
+    inet 169.254.0.1 peer 128.66.23.42/32 scope link nw-caf242370b5c
        valid_lft forever preferred_lft forever
     inet6 fe80::6855:5eff:fe99:b81f/64 scope link 
        valid_lft forever preferred_lft forever
-    inet6 fe80::1 peer 2001:db8::1/128 scope link 
+    inet6 fe80::1 peer 2001:db8:cabb:a6e5::1/128 scope link 
        valid_lft forever preferred_lft forever
 
 root@host:/# ip -4 route
@@ -126,7 +126,7 @@ root@bb9b0be2a4d3:/# ip address
        valid_lft forever preferred_lft forever
 157: eth0: <BROADCAST,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
     link/ether 4e:45:86:31:c4:15 brd ff:ff:ff:ff:ff:ff
-    inet 128.66.23.64 peer 169.254.0.1/32 scope global eth0 
+    inet 128.66.23.42 peer 169.254.0.1/32 scope global eth0 
        valid_lft forever preferred_lft forever
     inet6 2001:db8:cabb:a6e5::1 peer fe80::1/128 scope global 
        valid_lft forever preferred_lft forever
