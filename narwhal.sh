@@ -170,6 +170,7 @@ temp_ll="$(cat "/sys/class/net/$temp_interface/address")"
 ip link set "$host_interface" arp off
 ip link set "$temp_interface" arp off
 
+
 # Enable reversed-path source validation
 sysctl -q -w "net.ipv4.conf.${host_interface}.rp_filter=1"
 
@@ -182,9 +183,8 @@ ip link set "$host_interface" up
 if [ -n "$ipv4" ]
 then
 	# Setup address, neighbour table and host route
-	ip -4 address add "$host_ipv4" scope link dev "$host_interface"
+	ip -4 address add "$host_ipv4" peer "$ipv4/32" scope link dev "$host_interface"
 	ip -4 neighbour replace "$ipv4" lladdr "$temp_ll" nud permanent dev "$host_interface"
-	ip -4 route add "$ipv4/32" dev "$host_interface"
 fi
 
 if [ -n "$ipv6" ]
@@ -193,7 +193,7 @@ then
 	sysctl -q -w "net.ipv6.conf.${host_interface}.autoconf=0"
 
 	# Setup address, neighbour table and host route
-	ip -6 address add "$host_ipv6" scope link dev "$host_interface"
+	ip -6 address add "$host_ipv6" peer "$ipv6/128" scope link dev "$host_interface"
 	ip -6 neighbour replace "$ipv6" lladdr "$temp_ll" nud permanent dev "$host_interface"
 	ip -6 route add "$ipv6/128" dev "$host_interface"
 else
@@ -216,9 +216,8 @@ ip link set "\$interface" up
 
 if [ -n "\$ipv4" ]
 then
-	ip -4 address add "\$ipv4/32" dev "\$interface"
+	ip -4 address add "\$ipv4" peer "\$host_ipv4/32" dev "\$interface"
 	ip -4 neighbour replace "\$host_ipv4" lladdr "\$host_ll" nud permanent dev "\$interface"
-	ip -4 route add "\$host_ipv4/32" dev "\$interface"
 	ip -4 route add default via "\$host_ipv4" dev "\$interface"
 fi
 
@@ -227,7 +226,7 @@ then
 	# Disable IPv6 autoconfiguration
 	sysctl -q -w "net.ipv6.conf.\${interface}.autoconf=0"
 
-	ip -6 address add "\$ipv6/128" dev "\$interface"
+	ip -6 address add "\$ipv6" peer "\$host_ipv6/128" dev "\$interface"
 	ip -6 neighbour replace "\$host_ipv6" lladdr "\$host_ll" nud permanent dev "\$interface"
 	ip -6 route add "\$host_ipv6/128" dev "\$interface"
 	ip -6 route add default via "\$host_ipv6" dev "\$interface"
