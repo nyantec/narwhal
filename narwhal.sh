@@ -146,6 +146,13 @@ trap 'clean_veth; clean_netns' EXIT
 host_ll="$(cat "/sys/class/net/$host_interface/address")"
 temp_ll="$(cat "/sys/class/net/$temp_interface/address")"
 
+# Disable ARP on interfaces
+ip link set "$host_interface" arp off
+ip link set "$temp_interface" arp off
+
+# Enable reversed-path source validation
+sysctl -w "net.ipv4.conf.${host_interface}.rp_filter=1"
+
 # Move interface to container namespace
 ip link set "$temp_interface" netns "$temp_namespace"
 
@@ -154,16 +161,23 @@ ip link set "$host_interface" up
 
 if [ -n "$ipv4" ]
 then
+	# Setup address, neighbour table and host route
 	ip -4 address add "$host_ipv4" dev "$host_interface"
 	ip -4 neighbour replace "$ipv4" lladdr "$temp_ll" nud permanent dev "$host_interface"
 	ip -4 route add "$ipv4/32" dev "$host_interface"
 fi
 
 if [ -n "$ipv6" ]
-then
+	# Disable IPv6 autoconfiguration
+	sysctl -w "net.ipv6.conf.${host_interface}.autoconf=0"
+
+	# Setup address, neighbour table and host route
 	ip -6 address add "$host_ipv6" dev "$host_interface"
 	ip -6 neighbour replace "$ipv6" lladdr "$temp_ll" nud permanent dev "$host_interface"
 	ip -6 route add "$ipv6/128" dev "$host_interface"
+else
+	# Disable IPv6
+	sysctl -w "net.ipv6.conf.${host_interface}.disable_ipv6=1"
 fi
 
 # Setup container interface
@@ -189,12 +203,32 @@ fi
 
 if [ -n "\$ipv6" ]
 then
+	# Disable IPv6 autoconfiguration
+	sysctl -w "net.ipv6.conf.\${interface}.autoconf=0"
+
 	ip -6 address add "\$ipv6/128" dev "\$interface"
 	ip -6 neighbour replace "\$host_ipv6" lladdr "\$host_ll" nud permanent dev "\$interface"
 	ip -6 route add "\$host_ipv6/128" dev "\$interface"
 	ip -6 route add default via "\$host_ipv6" dev "\$interface"
+else
+	# Disable IPv6
+	sysctl -w "net.ipv6.conf.\${interface}.disable_ipv6=1"
 fi
 EOF
+
+# Enable packet forwarding
+if [ -n "$forwarding" ]
+then
+	if [ -n "$ipv4" ]
+	then
+		sysctl -w "net.ipv4.conf.${host_interface}.forwarding=1"
+	fi
+
+	if [ -n "$ipv6" ]
+		sysctl -w "net.ipv6.conf.${host_interface}.forwarding=1"
+	then
+	fi
+fi
 
 # Reset trap
 trap 'clean_netns' EXIT
