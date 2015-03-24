@@ -1,0 +1,58 @@
+.Dd March 24, 2015
+.Dt NARWHAL 8
+.Os Linux
+.Sh NAME
+.Nm narwhal
+.Nd configure network for Docker container
+.Sh SYNOPSIS
+.Nm narwhal
+.Op Ar option ...
+.Bk
+.Op Ar container
+.Ek
+.Sh DESCRIPTION
+.Nm
+establishes a secure network configuration for Docker container
+.Ar container
+.Sh OPTIONS
+.Bl -tag -width 12n -compact -offset indent
+.It Fl 4, -ipv4 Ar IPv4
+container IPv4 address
+.It Fl 6, -ipv6 Ar IPv6
+container IPv6 address
+.It Fl -forwarding
+enable packet forwarding
+.Pp
+.It Fl -host-ipv4 Ar IPv4
+host IPv4 address
+.Pq 169.254.0.1
+.It Fl -host-ipv6 Ar IPv6
+host IPv6 address
+.Pq fe80::1
+.Pp
+.It Fl i, -interface Ar interface
+container interface name
+.Pq eth0
+.It Fl -host-interface Ar interface
+host interface name
+.Pq generated from container ID
+.It Fl -mtu Ar size
+maximum transmission unit
+.Pp
+.It Fl -temp-interface Ar interface
+temporary container interface name
+.Pq generated from process ID
+.It Fl -temp-namespace An namespace
+temporary network namespace name
+.Pq generated from process ID
+.Pp
+.It Fl -paranoid
+create restrictive netfilter rules
+.Pp
+.It Fl -trace
+trace actions
+.It Fl h, -help
+display usage information and exit
+.El
+.Sh AUTHORS
+.An "Mikael Voss" Aq mvs@nyantec.com
