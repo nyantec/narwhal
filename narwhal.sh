@@ -66,7 +66,7 @@ ip link set '$int' name eth0
 ip link set eth0 up
 
 ip -4 address add '$ipv4/32' dev eth0
-ip -4 neighbour replace '$gwv6' lladdr '$llext' nud permanent dev eth0
+ip -4 neighbour replace '$gwv4' lladdr '$llext' nud permanent dev eth0
 ip -4 route add '$gwv4/32' dev eth0
 ip -4 route add default via "$gwv4"
 
