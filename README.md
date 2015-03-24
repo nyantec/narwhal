@@ -27,8 +27,8 @@ why this is extremely dangerous. It completely undermines the carefully crafted
 container isolation based on networking namespaces.
 
 The solution proposed by `narwhal` is to just have a virtual ethernet device
-and networking namespace per container and to just only IPv4 and IPv6 (layer 3)
-routing between containers and the outside world.
+and networking namespace per container and simply route IPv4 and IPv6 (layer 3)
+packets between containers and the outside world.
 
 It is common knownledge to most operators how to work with 
 [iptables](http://www.netfilter.org/projects/iptables/) and 
