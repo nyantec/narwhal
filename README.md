@@ -205,22 +205,22 @@ options:
     Additionally, you may configure source and/or destination NAT to
     selectively allow communication with the outside world.
 
-### What happens if `narwhal` is (accidentially) applied more than once?
+### What happens if `narwhal` is applied more than once?
 
 Nothing. It will find that an `eth0` device already exists and just fail
 after rolling back alrady acquired resources.
 
-### Can `narwhal` be used in combination with the other networking modes?
+### Can `narwhal` be used in combination with other networking modes?
 
 Absolutely! Your other containers may use other networking modes.
-Containers you want to configure with `narwahl` should use `--net=none`.
+Containers you wish to configure with `narwahl` should use `--net=none`.
 Trying to apply `narwahl` to otherwise configured containers just fails
 if an `eth0` device already exists, but it won't cause any harm.
 
 ### What happens on container termination?
 
-The containers' networking namespace and the virtual ethernet pair are destroyed
-automatically.
+The containers’ network namespace and the virtual Ethernet pair are
+destroyed automatically.
 
 ### What happens when I configure networking after my container started?
 
@@ -234,4 +234,3 @@ as listen address. Consult your services' documentation for details.
 
 After `narwhal` was run and created the `eth0` device your service will
 automatically accept packets via the supplied addresses.
-
