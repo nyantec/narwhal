@@ -192,6 +192,9 @@ then
 	# Disable IPv6 autoconfiguration
 	sysctl -q -w "net.ipv6.conf.${host_interface}.autoconf=0"
 
+	# Ignore router advertisements
+	sysctl -q -w "net.ipv6.conf.${host_interface}.accept_ra=0"
+
 	# Setup address, neighbour table and host route
 	ip -6 address add "$host_ipv6" peer "$ipv6/128" scope link dev "$host_interface"
 	ip -6 neighbour replace "$ipv6" lladdr "$temp_ll" nud permanent dev "$host_interface"
@@ -225,6 +228,9 @@ if [ -n "\$ipv6" ]
 then
 	# Disable IPv6 autoconfiguration
 	sysctl -q -w "net.ipv6.conf.\${interface}.autoconf=0"
+
+	# Ignore router advertisements
+	sysctl -q -w "net.ipv6.conf.\${interface}.accept_ra=0"
 
 	ip -6 address add "\$ipv6" peer "\$host_ipv6/128" dev "\$interface"
 	ip -6 neighbour replace "\$host_ipv6" lladdr "\$host_ll" nud permanent dev "\$interface"
