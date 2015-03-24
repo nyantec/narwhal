@@ -3,42 +3,44 @@ narwhal – secure Docker networking
 
 ## What does `narwhal` do?
 
-`narwhal` is used with the `--net=none` option to `docker run` and creates a
-virtual ethernet device pair (with one end in the container and the other end
-on the host system). It assigns static IPv4 and IPv6 addresses with the
-minimum neccessary routing setup.
+`narwhal` is used in conjunction with the `--net=none` networking mode of
+Docker to establish a secure network configuration. It does so by creating
+a pair of virtual Ethernet interfaces with static addresses for each
+container and setting up the necessary network routes.
 
 ## What is this good for?
 
 Docker currently offers 4 different networking modes: `bridge`, `host`, 
 `container` and `none`.
 
-Most users use `bridge` which is the default. In bridge mode Docker creates
-a seperate networking namespace per container and a virtual ethernet device pair.
-This is fairly secure as a container is not capable to interfere with other
-containers' or even the host systems' networking stack.
+Most users probably use the default `bridge` mode as it is the only one
+providing Internet connectivity with network isolation out of the box.
+In this mode, Docker creates seperate network namespaces for every
+container as well as a connected pair of virtual Ethernet interfaces
+with one end in the host’s network namespace and the other end in the
+container’s namespace. This approach is fairly secure by itself as all
+communication has to go through this virtual interface and no container
+is capable of interfering with other containers’ or even the host’s
+network stack.
 
-In addition to that the Docker daemon creates a virtual bridge device on
-startup which is (more or less) a layer 2 (ethernet) switch. It adds the host
-side of your containers' virtual ethernet pair to that bridge. This allows
-all containers to talk to each other via ethernet. Read 
-[here](https://nyantec.com/en/2015/03/20/docker-networking-considered-harmful/)
-why this is extremely dangerous. It completely undermines the carefully crafted
-container isolation based on networking namespaces.
+Unfortunately, the Docker daemon creates an Ethernet bridge on startup,
+which behaves (more or less) like a hardware Ethernet switch. Docker then
+connects the host side of the virtual interfaces to it, allowing all
+containers to talk to each other directly via Ethernet (layer 2). Read
+[this article](https://nyantec.com/en/2015/03/20/docker-networking-considered-harmful/)
+to understand why this is a bad idea. It completely undermines the
+carefully crafted network isolation.
 
-The solution proposed by `narwhal` is to just have a virtual ethernet device
-and networking namespace per container and simply route IPv4 and IPv6 (layer 3)
-packets between containers and the outside world.
+`narwhal` on the other hand does without a bridge by routing IPv4 and
+IPv6 (layer 3) packets between containers and the outside world, thus
+eliminating the problems that come with having all your containers in
+the same Ethernet segment.
 
-It is common knownledge to most operators how to work with 
-[iptables](http://www.netfilter.org/projects/iptables/) and 
-[ip6tables](http://ipset.netfilter.org/ip6tables.man.html), but how many have
-ever heard of [ebtables](http://ebtables.netfilter.org/)? ;-)
+__tl;dr: Docker’s default networking mode is vulnerable to ARP and MAC
+spoofing attacks. A single container under control of an attacker is
+enough to compromise the whole network.__
 
-__tl;dr: Docker's default networking mode is vulnerable to ARP spoofing attacks.
-A single malicious container corrupts all running containers.__
-
-## How do I use it?
+## How is it used?
 
 ```
 Usage: narwhal [OPTION]… [CONTAINER]
