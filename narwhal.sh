@@ -97,6 +97,10 @@ done
 if [ $# -lt 1 ]
 then
 	die 1 "Docker container ID required."
+elif [ $# -ge 1 ]
+then
+	shift
+	die 1 "Stray command-line arguments: %s" "$*"
 fi
 
 # Enable tracing
