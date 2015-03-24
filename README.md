@@ -35,38 +35,30 @@ It is common knownledge to most operators how to work with
 [ip6tables](http://ipset.netfilter.org/ip6tables.man.html), but how many have
 ever heard of [ebtables](http://ebtables.netfilter.org/)? ;-)
 
-__tl;dr:_Docker's default networking mode is vulnerable to ARP spoofing attacks.
+__tl;dr: Docker's default networking mode is vulnerable to ARP spoofing attacks.
 A single malicious container corrupts all running containers.__
 
 ## How do I use it?
 
 ```
-narwhal container [--ipv4 addr] [--ipv4-host addr] [--ipv6 addr] [--ipv6-host addr] [--interface name] [--host-interface name]
+Usage: narwhal.sh [OPTION]… [CONTAINER]
+
+  -4, --ipv4 IPV4               container IPv4 address
+  -6, --ipv6 IPV6               container IPv6 address
+      --forwarding              enable packet forwarding
+
+      --host-ipv4 IPV6          host IPv4 address [169.254.0.1]
+      --host-ipv6 IPV6          host IPv6 address [fe80::1]
+
+      --interface IFACE         container interface name [eth0]
+      --host-interface IFACE    host interface name [nw-CONTAINER]
+
+      --temp-interface IFACE    temporary container interface name [nwt-PID]
+      --temp-namespace NS       temporary network namespace name [nwt-PID]
+
+      --trace                   trace actions
+  -h, --help                    display this help and exit
 ```
-
-__container__ 
-:    The ID or name of a running Docker container. See `docker ps`.
-
-__--ipv4 addr__
-:    The IPv4 address assigned to the container.
-
-__--ipv4-host addr__
-:    The IPv4 address that the host will be known as to the container. It'll
-also be configured as the containers default gateway. Defaults to `169.254.0.1`
-
-__--ipv6 addr__
-:    The IPv6 address assigned to the container.
-
-__--ipv6-host addr__
-:    The IPv6 address that the host will be known as to the container. It'll
-also be configured as the containers' default gateway. Defaults to `fe80::1`
-
-__--interface name__
-:    The name of the created interface inside the container. Defaults to `eth0`.
-
-__--host-interface name__
-:    The name of the created interface on the host. Defaults to `nw-$CONTAINERID`.
-
 
 ### Example
 
@@ -87,28 +79,22 @@ Now that your container is running configure networking. We assume we own the pu
 `5.9.235.144/28` and `2a01:4f8:161:310e:4::/80`:
 
 ```bash
-root@host:/# ip address
-...
-2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-    link/ether 7c:05:07:0e:01:ea brd ff:ff:ff:ff:ff:ff
-    inet 5.9.42.20/27 brd 5.9.42.31 scope global eth0
-       valid_lft forever preferred_lft forever
-    inet6 2a01:4f8:161:310e::1/80 scope global 
-       valid_lft forever preferred_lft forever
-    inet6 fe80::7e05:7ff:fe0e:1ea/64 scope link 
-       valid_lft forever preferred_lft forever
+root@host:/# narwhal narwhal.sh --ipv4 5.9.235.147 --ipv6 2a01:4f8:161:310e:4::1 bb9b0be2a4d3
+```
 
-root@host:/# narwhal bb9b0be2a4d3 --ipv4 5.9.235.146 --ipv4-host 5.9.42.20 --ipv6 2a01:4f8:161:310e:4::1 --ipv6-host 2a01:4f8:161:310e::1
 
+You should now be able to see the new device. This is what it looks like on the host:
+
+```
 root@host:/# ip address
 ...
 74: nw-bb9b0be2a4d3: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-    link/ether ca:46:43:64:d0:ef brd ff:ff:ff:ff:ff:ff
-    inet 5.9.42.20 peer 5.9.235.147/32 scope global nw-bb9b0be2a4d3
+link/ether 6a:55:5e:99:b8:1f brd ff:ff:ff:ff:ff:ff
+    inet 169.254.0.1/32 scope link nw-caf242370b5c
        valid_lft forever preferred_lft forever
-    inet6 2a01:4f8:161:310e::1 peer 2a01:4f8:161:310e:4::1/128 scope global 
+    inet6 fe80::6855:5eff:fe99:b81f/64 scope link 
        valid_lft forever preferred_lft forever
-    inet6 fe80::c846:43ff:fe64:d0ef/64 scope link 
+    inet6 fe80::1/128 scope link 
        valid_lft forever preferred_lft forever
 
 root@host:/# ip route
@@ -124,9 +110,7 @@ fe80::/64 dev nw-bb9b0be2a4d3  proto kernel  metric 256
 default via fe80::1 dev eth0  metric 1024 
 ```
 
-`narwhal` created the virtual ethernet pair which is named `nw-bb9b0be2a4d3` on the host side.
-
-This is how it now looks from inside the container:
+This is how it looks like from within the container: 
 
 ```bash
 root@bb9b0be2a4d3:/# ip address
@@ -136,22 +120,24 @@ root@bb9b0be2a4d3:/# ip address
        valid_lft forever preferred_lft forever
     inet6 ::1/128 scope host 
        valid_lft forever preferred_lft forever
-73: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
-    link/ether 96:f2:bd:b4:64:ee brd ff:ff:ff:ff:ff:ff
+157: eth0: <BROADCAST,MULTICAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 4e:45:86:31:c4:15 brd ff:ff:ff:ff:ff:ff
     inet 5.9.235.147/32 scope global eth0
        valid_lft forever preferred_lft forever
-    inet6 2a01:4f8:161:310e:4::1 peer 2a01:4f8:161:310e::1/128 scope global 
+    inet6 2a01:4f8:161:310e:4::1/128 scope global 
        valid_lft forever preferred_lft forever
-    inet6 fe80::94f2:bdff:feb4:64ee/64 scope link 
+    inet6 fe80::4c45:86ff:fe31:c415/64 scope link 
        valid_lft forever preferred_lft forever
+
 root@bb9b0be2a4d3:/# ip route
-default via 5.9.42.20 dev eth0 
-5.9.42.20 dev eth0  scope link 
+default via 169.254.0.1 dev eth0 
+169.254.0.1 dev eth0  scope link 
+
 root@bb9b0be2a4d3:/# ip -6 route
-2a01:4f8:161:310e::1 dev eth0  metric 1024 
 2a01:4f8:161:310e:4::1 dev eth0  proto kernel  metric 256 
+fe80::1 dev eth0  metric 1024 
 fe80::/64 dev eth0  proto kernel  metric 256 
-default via 2a01:4f8:161:310e::1 dev eth0  metric 1024 
+default via fe80::1 dev eth0  metric 1024
 ```
 
 If `sysctl net/ipv4/conf/all/forwarding` and `sysctl net/ipv6/conf/all/forwarding` 
