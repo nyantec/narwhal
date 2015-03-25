@@ -222,15 +222,17 @@ if an `eth0` device already exists, but it won't cause any harm.
 The containers’ network namespace and the virtual Ethernet pair are
 destroyed automatically.
 
-### What happens when I configure networking after my container started?
+### How do I configure network addresses inside the container?
 
-If the container is started with `--net=none` it only has a
-[loop back device](https://en.wikipedia.org/wiki/Loop_device). When your
-container has services listening on ports it should __not__ bind to
-a specific address (except `127.0.0.1` or `::1`). 
+In `--net=none` mode your container will start up with only a
+[loopback network interface](https://en.wikipedia.org/wiki/Loopback#Virtual_loopback_interface).
+To avoid race conditions, network services inside your container should
+__not__ be bound to a specific address but to `::` or `0.0.0.0`.
 
-Not binding to an address is usually achieved by supplying `0.0.0.0`, `*`, `:::`
-as listen address. Consult your services' documentation for details.
+After the interface inside the container (usually `eth0`) has been created,
+your service will automatically receive packets at the addresses configured
+with `narwhal`.
 
-After `narwhal` was run and created the `eth0` device your service will
-automatically accept packets via the supplied addresses.
+An exception to this rule are services that should be only reachable
+from inside the container. These should be bound to `localhost` (`::1` or
+`127.0.0.1`).
