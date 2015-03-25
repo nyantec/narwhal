@@ -23,9 +23,9 @@ is capable of interfering with other containers’ or even the host’s
 network stack.
 
 Unfortunately, Docker connects these virtual interfaces to an Ethernet
-bridge which behaves (more or less) like a hardware Ethernet switch,
-allowing all containers to talk to each other directly via Ethernet
-(layer 2). Read
+bridge `docker0` which behaves (more or less) like a hardware Ethernet
+switch, allowing all containers to talk to each other directly via
+Ethernet (layer 2). Read
 [this article](https://nyantec.com/en/2015/03/20/docker-networking-considered-harmful/)
 to understand why this is a bad idea. It completely undermines the
 carefully crafted network isolation.
@@ -236,3 +236,20 @@ with `narwhal`.
 An exception to this rule are services that should be only reachable
 from inside the container. These should be bound to `localhost` (`::1` or
 `127.0.0.1`).
+
+### Why not just filter ARP?
+
+One might consider sticking with `--net=bridge` and filtering out unwanted
+frames on the `docker0` bridge with `ebtables`, but with container
+virtualisation there is no reason to use a bridge in the first place.
+
+Platform virtualisation (where a complete operating system is run on
+simulated hardware) usually relies on cramming all virtual machines into
+one Ethernet segment to allow easy network configuration via DHCP.
+
+With container virtualisation like Docker things are quite different.
+Network configuration is done directly from outside the container,
+eliminating the need for DHCP and with it the necessity for a unified
+Ethernet segment.
+
+So why bridge everything together when we don’t need to?
