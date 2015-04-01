@@ -150,7 +150,7 @@ id="$(docker inspect --format '{{ printf "%.12s" .Id }}' "$1")"
 : ${host_ipv6:=fe80::1}
 
 # Determine Docker container PID
-pid="$(docker inspect --format='{{ .State.Pid }}' "$id")"
+pid="$(docker inspect --format='{{ .State.Pid | printf "%.f" }}' "$id")"
 
 # Create temporary name for network namespace
 mkdir -p /var/run/netns
