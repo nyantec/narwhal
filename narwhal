@@ -300,7 +300,7 @@ then
 	# Setup address, neighbour table and host route
 	ip -6 address add "$host_ipv6" peer "$ipv6/128" scope link dev "$host_interface"
 	ip -6 neighbour replace "$ipv6" lladdr "$temp_ll" nud permanent dev "$host_interface"
-	ip -6 route add "$ipv6/128" dev "$host_interface"
+	ip -6 route replace "$ipv6/128" dev "$host_interface"
 else
 	# Disable IPv6
 	sysctl -q -w "net.ipv6.conf.${host_interface}.disable_ipv6=1"
